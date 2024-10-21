@@ -32,20 +32,22 @@ struct Token
 {
     TokenType type;
     string value;
+    int line;
 };
 
 class Lexer
 {
-
 private:
     string src;
     size_t pos;
+    int line;
 
 public:
     Lexer(const string &src)
     {
         this->src = src;
         this->pos = 0;
+        this->line = 0;
     }
 
     string consumeNumber()
@@ -73,72 +75,74 @@ public:
 
             if (isspace(current))
             {
+                if (current == '\n')
+                    line++;
                 pos++;
                 continue;
             }
             if (isdigit(current))
             {
-                tokens.push_back(Token{T_NUM, consumeNumber()});
+                tokens.push_back(Token{T_NUM, consumeNumber(), line});
                 continue;
             }
             if (isalpha(current))
             {
                 string word = consumeWord();
                 if (word == "int")
-                    tokens.push_back(Token{T_INT, word});
+                    tokens.push_back(Token{T_INT, word, line});
                 else if (word == "if")
-                    tokens.push_back(Token{T_IF, word});
+                    tokens.push_back(Token{T_IF, word, line});
                 else if (word == "else")
-                    tokens.push_back(Token{T_ELSE, word});
+                    tokens.push_back(Token{T_ELSE, word, line});
                 else if (word == "return")
-                    tokens.push_back(Token{T_RETURN, word});
+                    tokens.push_back(Token{T_RETURN, word, line});
                 else
-                    tokens.push_back(Token{T_ID, word});
+                    tokens.push_back(Token{T_ID, word, line});
                 continue;
             }
 
             switch (current)
             {
             case '=':
-                tokens.push_back(Token{T_ASSIGN, "="});
+                tokens.push_back(Token{T_ASSIGN, "=", line});
                 break;
             case '+':
-                tokens.push_back(Token{T_PLUS, "+"});
+                tokens.push_back(Token{T_PLUS, "+", line});
                 break;
             case '-':
-                tokens.push_back(Token{T_MINUS, "-"});
+                tokens.push_back(Token{T_MINUS, "-", line});
                 break;
             case '*':
-                tokens.push_back(Token{T_MUL, "*"});
+                tokens.push_back(Token{T_MUL, "*", line});
                 break;
             case '/':
-                tokens.push_back(Token{T_DIV, "/"});
+                tokens.push_back(Token{T_DIV, "/", line});
                 break;
             case '(':
-                tokens.push_back(Token{T_LPAREN, "("});
+                tokens.push_back(Token{T_LPAREN, "(", line});
                 break;
             case ')':
-                tokens.push_back(Token{T_RPAREN, ")"});
+                tokens.push_back(Token{T_RPAREN, ")", line});
                 break;
             case '{':
-                tokens.push_back(Token{T_LBRACE, "{"});
+                tokens.push_back(Token{T_LBRACE, "{", line});
                 break;
             case '}':
-                tokens.push_back(Token{T_RBRACE, "}"}); 
+                tokens.push_back(Token{T_RBRACE, "}", line});
                 break;
             case ';':
-                tokens.push_back(Token{T_SEMICOLON, ";"}); 
+                tokens.push_back(Token{T_SEMICOLON, ";", line});
                 break;
             case '>':
-                tokens.push_back(Token{T_GT, ">"}); 
+                tokens.push_back(Token{T_GT, ">", line});
                 break;
             default:
-                cout << "Unexpected character: " << current << endl;
+                cout << "Unexpected character: " << current << " at line " << line << endl;
                 exit(1);
             }
             pos++;
         }
-        tokens.push_back(Token{T_EOF, ""});
+        tokens.push_back(Token{T_EOF, "", line});
         return tokens;
     }
 };
@@ -189,7 +193,7 @@ private:
         }
         else
         {
-            cout << "Syntax error: unexpected token " << tokens[pos].value << endl;
+            cout << "Syntax error: unexpected token " << tokens[pos].value << " at line " << tokens[pos].line << endl;
             exit(1);
         }
     }
@@ -251,7 +255,7 @@ private:
         if (tokens[pos].type == T_GT)
         {
             pos++;
-            parseExpression(); 
+            parseExpression();
         }
     }
 
@@ -279,7 +283,7 @@ private:
         }
         else
         {
-            cout << "Syntax error: unexpected token " << tokens[pos].value << endl;
+            cout << "Syntax error: unexpected token " << tokens[pos].value << " at line " << tokens[pos].line << endl;
             exit(1);
         }
     }
@@ -292,7 +296,7 @@ private:
         }
         else
         {
-            cout << "Syntax error: expected " << type << " but found " << tokens[pos].value << endl;
+            cout << "Syntax error: expected " << type << " but found " << tokens[pos].value << " at line " << tokens[pos].line << endl;
             exit(1);
         }
     }
