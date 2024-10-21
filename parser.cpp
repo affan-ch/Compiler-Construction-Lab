@@ -3,6 +3,8 @@
 #include <string>
 #include <cctype>
 #include <map>
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -47,7 +49,7 @@ public:
     {
         this->src = src;
         this->pos = 0;
-        this->line = 0;
+        this->line = 1;
     }
 
     string consumeNumber()
@@ -302,19 +304,25 @@ private:
     }
 };
 
-int main()
+int main(int argc, char *argv[])
 {
-    string input = R"(
-        int a;
-        a = 5;
-        int b;
-        b = a + 10;
-        if (b > 10) {
-            return b;
-        } else {
-            return 0;
-        }
-    )";
+    if (argc != 2)
+    {
+        cerr << "Usage: " << argv[0] << " <source-file>" << endl;
+        return 1;
+    }
+
+    ifstream file(argv[1]);
+    if (!file)
+    {
+        cerr << "Error: could not open file " << argv[1] << endl;
+        return 1;
+    }
+
+    stringstream buffer;
+    buffer << file.rdbuf();
+    string input = buffer.str();
+
 
     Lexer lexer(input);
     vector<Token> tokens = lexer.tokenize();
